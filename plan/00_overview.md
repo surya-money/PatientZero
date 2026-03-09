@@ -3,7 +3,7 @@
 ## Stack
 - **Frontend**: React + Vite + TypeScript
 - **Backend**: FastAPI
-- **LLM**: TBD
+- **LLM**: Abstracted provider (Mock, OpenAI, Claude, Local)
 - **Repo**: Monorepo
 
 ## Architecture
@@ -78,6 +78,13 @@ PatientZero/
 │   │   └── condition.py         # ExplanationStyle, InteractionMode enums
 │   ├── config/
 │   │   └── settings.py          # Env vars, model params, constants
+│   ├── llm/
+│   │   ├── base.py              # Abstract LLMProvider class
+│   │   ├── mock.py              # MockProvider (canned responses, testing)
+│   │   ├── openai.py            # OpenAIProvider
+│   │   ├── claude.py            # ClaudeProvider
+│   │   ├── local.py             # LocalProvider (ollama, etc.)
+│   │   └── factory.py           # get_provider(name) factory function
 │   ├── agents/
 │   │   ├── explainer.py         # Explainer Agent
 │   │   ├── patient.py           # Patient Agent
@@ -122,6 +129,32 @@ PatientZero/
 │   │       ├── scenarios.py     # Scenario queries
 │   │       ├── scores.py        # Score queries
 │   │       └── participants.py  # Validation participant queries
+│   ├── tests/
+│   │   ├── agents/
+│   │   │   ├── test_explainer.py
+│   │   │   ├── test_patient.py
+│   │   │   └── test_judge.py
+│   │   ├── llm/
+│   │   │   ├── test_mock.py
+│   │   │   ├── test_openai.py
+│   │   │   ├── test_claude.py
+│   │   │   └── test_factory.py
+│   │   ├── engine/
+│   │   │   ├── test_interaction.py
+│   │   │   ├── test_session.py
+│   │   │   └── test_logger.py
+│   │   ├── db/
+│   │   │   ├── test_database.py
+│   │   │   └── test_queries.py
+│   │   ├── evaluation/
+│   │   │   ├── test_scoring.py
+│   │   │   ├── test_calibration.py
+│   │   │   └── test_consistency.py
+│   │   └── api/
+│   │       ├── test_sessions.py
+│   │       ├── test_personas.py
+│   │       ├── test_scenarios.py
+│   │       └── test_results.py
 │   └── pyproject.toml
 │
 ├── plan/
@@ -152,7 +185,9 @@ PatientZero/
 | `uvicorn` | ASGI server |
 | `pydantic` | Data validation & serialization |
 | `sse-starlette` | Server-Sent Events for streaming |
-| `anthropic` | Claude API (or `openai` — TBD) |
+| `anthropic` | Claude API |
+| `openai` | OpenAI API |
+| `httpx` | HTTP client for local LLM endpoints |
 | `scipy` | Statistical tests (ANOVA, Kruskal-Wallis) |
 | `numpy` | Numerical computation |
 | `pandas` | Data manipulation |
@@ -178,7 +213,7 @@ PatientZero/
 
 ## Open Questions
 - [x] Backend framework: FastAPI
-- [ ] LLM provider: Claude (Anthropic) / OpenAI / configurable?
+- [x] LLM provider: Abstracted — Mock, OpenAI, Claude, Local
 - [x] Database: SQLite, raw queries, `db/` directory with Database class
 - [x] Real-time streaming: SSE
 - [x] Auth: None for now

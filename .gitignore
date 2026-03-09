@@ -23,3 +23,13 @@ Thumbs.db
 
 # Environment
 .env
+
+# Frontend
+node_modules/
+frontend/dist/
+
+# Database
+*.db
+
+# Data output
+backend/data/
