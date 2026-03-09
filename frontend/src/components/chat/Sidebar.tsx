@@ -14,6 +14,9 @@ interface SidebarProps {
 export function Sidebar({ sessions, activeSessionId, onSelectSession, onNewChat }: SidebarProps) {
   return (
     <div className="flex h-full w-64 flex-col border-r border-border bg-muted/30">
+      <div className="flex h-12 items-center border-b border-border px-4">
+        <span className="text-sm font-bold">PatientZero</span>
+      </div>
       <div className="p-3">
         <Button onClick={onNewChat} className="w-full justify-start gap-2" variant="outline">
           <Plus className="h-4 w-4" />

@@ -1,6 +1,6 @@
 import json
 
-from fastapi import APIRouter
+from fastapi import APIRouter, HTTPException
 from pydantic import BaseModel
 from sse_starlette.sse import EventSourceResponse
 
@@ -37,13 +37,16 @@ def get_all_sessions():
 def get_session_detail(session_id: str):
     session = get_session(db, session_id)
     if not session:
-        return {"error": "Session not found"}, 404
+        raise HTTPException(status_code=404, detail="Session not found")
     turns = get_turns(db, session_id)
     return {**session, "turns": turns}
 
 
 @router.post("/chat")
 async def chat(request: ChatRequest):
+    session = get_session(db, request.session_id)
+    if not session:
+        raise HTTPException(status_code=404, detail="Session not found")
     turn_number = get_turn_count(db, request.session_id)
     create_turn(db, request.session_id, "user", request.message, turn_number)
 
