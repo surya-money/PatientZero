@@ -1,6 +1,7 @@
 export interface Session {
   id: string;
   title: string;
+  model: string;
   created_at: string;
 }
 

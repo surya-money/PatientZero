@@ -1,8 +1,8 @@
 import type { Session, SessionDetail } from '@/types/chat';
 import { client, API_BASE } from './client';
 
-export async function createSession(): Promise<Session> {
-  const { data } = await client.post('/sessions');
+export async function createSession(model: string = 'mock:default'): Promise<Session> {
+  const { data } = await client.post('/sessions', { model });
   return data;
 }
 
@@ -13,6 +13,16 @@ export async function listSessions(): Promise<Session[]> {
 
 export async function getSession(id: string): Promise<SessionDetail> {
   const { data } = await client.get(`/sessions/${id}`);
+  return data;
+}
+
+export async function updateSessionModel(id: string, model: string): Promise<Session> {
+  const { data } = await client.patch(`/sessions/${id}`, { model });
+  return data;
+}
+
+export async function listModels(): Promise<string[]> {
+  const { data } = await client.get('/models');
   return data;
 }
 
@@ -50,7 +60,7 @@ export async function sendMessage(
           const parsed = JSON.parse(raw);
           if (parsed.token) onToken(parsed.token);
         } catch {
-          // skip non-JSON data lines (e.g. done event)
+          // skip non-JSON data lines
         }
       }
       if (line.startsWith('event: done')) {

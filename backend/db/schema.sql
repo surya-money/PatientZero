@@ -1,6 +1,7 @@
 CREATE TABLE IF NOT EXISTS sessions (
     id TEXT PRIMARY KEY,
     title TEXT DEFAULT 'New Chat',
+    model TEXT DEFAULT 'mock:default',
     created_at TEXT DEFAULT (datetime('now'))
 );
 

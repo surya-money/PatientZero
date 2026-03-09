@@ -2,9 +2,9 @@ import uuid
 from db.database import Database
 
 
-def create_session(db: Database) -> dict:
+def create_session(db: Database, model: str = "mock:default") -> dict:
     session_id = str(uuid.uuid4())
-    db.execute("INSERT INTO sessions (id) VALUES (?)", (session_id,))
+    db.execute("INSERT INTO sessions (id, model) VALUES (?, ?)", (session_id, model))
     return db.fetch_one("SELECT * FROM sessions WHERE id = ?", (session_id,))
 
 
@@ -18,6 +18,10 @@ def list_sessions(db: Database) -> list[dict]:
 
 def update_session_title(db: Database, session_id: str, title: str):
     db.execute("UPDATE sessions SET title = ? WHERE id = ?", (title, session_id))
+
+
+def update_session_model(db: Database, session_id: str, model: str):
+    db.execute("UPDATE sessions SET model = ? WHERE id = ?", (model, session_id))
 
 
 def create_turn(db: Database, session_id: str, role: str, content: str, turn_number: int):
