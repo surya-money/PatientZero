@@ -43,6 +43,19 @@ def test_patch_session_not_found(test_client):
     assert resp.status_code == 404
 
 
+def test_delete_session(test_client):
+    create_resp = test_client.post("/api/sessions", json={})
+    session_id = create_resp.json()["id"]
+    resp = test_client.delete(f"/api/sessions/{session_id}")
+    assert resp.status_code == 200
+    assert test_client.get(f"/api/sessions/{session_id}").status_code == 404
+
+
+def test_delete_session_not_found(test_client):
+    resp = test_client.delete("/api/sessions/nonexistent")
+    assert resp.status_code == 404
+
+
 def test_get_models(test_client):
     resp = test_client.get("/api/models")
     assert resp.status_code == 200

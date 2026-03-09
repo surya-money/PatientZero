@@ -24,6 +24,11 @@ def update_session_model(db: Database, session_id: str, model: str):
     db.execute("UPDATE sessions SET model = ? WHERE id = ?", (model, session_id))
 
 
+def delete_session(db: Database, session_id: str):
+    db.execute("DELETE FROM turns WHERE session_id = ?", (session_id,))
+    db.execute("DELETE FROM sessions WHERE id = ?", (session_id,))
+
+
 def create_turn(db: Database, session_id: str, role: str, content: str, turn_number: int):
     db.execute(
         "INSERT INTO turns (session_id, role, content, turn_number) VALUES (?, ?, ?, ?)",

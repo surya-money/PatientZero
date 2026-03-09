@@ -1,6 +1,7 @@
 from db.queries.sessions import (
     create_session,
     create_turn,
+    delete_session,
     get_session,
     get_turn_count,
     get_turns,
@@ -55,6 +56,14 @@ def test_update_session_model(db):
     update_session_model(db, session["id"], "claude:claude-sonnet")
     fetched = get_session(db, session["id"])
     assert fetched["model"] == "claude:claude-sonnet"
+
+
+def test_delete_session(db):
+    session = create_session(db)
+    create_turn(db, session["id"], "user", "Hello", 0)
+    delete_session(db, session["id"])
+    assert get_session(db, session["id"]) is None
+    assert get_turns(db, session["id"]) == []
 
 
 def test_create_and_get_turns(db):

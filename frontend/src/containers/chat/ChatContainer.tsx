@@ -8,7 +8,7 @@ import { ModelSelector } from '@/components/chat/ModelSelector';
 export function ChatContainer() {
   const {
     sessions, activeSessionId, activeModel, turns, streamingContent,
-    isStreaming, availableModels, selectSession, newChat, send, setModel,
+    isStreaming, availableModels, selectSession, newChat, send, setModel, removeSession,
   } = useChat();
 
   const activeTitle = sessions.find((s) => s.id === activeSessionId)?.title ?? '';
@@ -20,6 +20,7 @@ export function ChatContainer() {
         activeSessionId={activeSessionId}
         onSelectSession={selectSession}
         onNewChat={newChat}
+        onDeleteSession={removeSession}
       />
       <div className="flex flex-1 flex-col">
         <Header title={activeTitle}>

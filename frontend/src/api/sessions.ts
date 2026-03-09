@@ -21,6 +21,10 @@ export async function updateSessionModel(id: string, model: string): Promise<Ses
   return data;
 }
 
+export async function deleteSession(id: string): Promise<void> {
+  await client.delete(`/sessions/${id}`);
+}
+
 export async function listModels(): Promise<string[]> {
   const { data } = await client.get('/models');
   return data;

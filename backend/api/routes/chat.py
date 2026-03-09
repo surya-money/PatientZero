@@ -9,6 +9,7 @@ from config.settings import AVAILABLE_MODELS
 from db.queries.sessions import (
     create_session,
     create_turn,
+    delete_session,
     get_session,
     get_turn_count,
     get_turns,
@@ -65,6 +66,15 @@ def update_session(session_id: str, request: UpdateSessionRequest):
         raise HTTPException(status_code=404, detail="Session not found")
     update_session_model(db, session_id, request.model)
     return get_session(db, session_id)
+
+
+@router.delete("/sessions/{session_id}")
+def delete_session_endpoint(session_id: str):
+    session = get_session(db, session_id)
+    if not session:
+        raise HTTPException(status_code=404, detail="Session not found")
+    delete_session(db, session_id)
+    return {"ok": True}
 
 
 @router.post("/chat")
