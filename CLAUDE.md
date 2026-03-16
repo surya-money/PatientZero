@@ -11,6 +11,7 @@ This is a git submodule inside the parent `AI_Capstone` repo.
 ```
 project/
 ├── backend/       # Python FastAPI server (run from here)
+├── evaluations/   # Evaluation scripts (import backend modules directly, no server needed)
 ├── frontend/      # React + Vite + TypeScript app
 ├── plan/          # Implementation plans
 └── report.txt     # Research report
@@ -69,6 +70,20 @@ Config via `.env` file at project root (see `.env.example`). Key vars:
 - `KIMI_API_KEY` — for Moonshot/Kimi provider
 - `ANTHROPIC_API_KEY` — for Claude provider (not yet implemented)
 - `LLM_PROVIDER` — active default provider (`mock` by default)
+
+## Evaluations
+
+Evaluation scripts in `evaluations/` that import backend modules directly (agents, LLM providers, config) — no running server needed. Requires a real LLM API key configured in `.env`.
+
+```
+evaluations/
+├── __init__.py
+└── simulate/
+    ├── __init__.py
+    └── test_simulate.py   # Simulation evaluation script
+```
+
+- **`simulate/`** — Package for running and evaluating explainer/patient agent simulations directly
 
 ## Testing
 

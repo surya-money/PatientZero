@@ -4,9 +4,9 @@ from fastapi import APIRouter, HTTPException
 from pydantic import BaseModel
 from sse_starlette.sse import EventSourceResponse
 
-from api.dependencies import db
-from config.settings import AVAILABLE_MODELS
-from db.queries.sessions import (
+from backend.api.dependencies import db
+from core.config.settings import AVAILABLE_MODELS
+from core.db.queries.sessions import (
     create_session,
     create_turn,
     delete_session,
@@ -17,7 +17,7 @@ from db.queries.sessions import (
     update_session_model,
     update_session_title,
 )
-from llm.factory import parse_provider_model
+from core.llm.factory import parse_provider_model
 
 router = APIRouter()
 

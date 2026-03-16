@@ -1,6 +1,6 @@
 import pytest
-from llm.factory import get_provider, parse_provider_model, _providers
-from llm.mock import MockProvider
+from core.llm.factory import get_provider, parse_provider_model, _providers
+from core.llm.mock import MockProvider
 
 
 @pytest.fixture(autouse=True)

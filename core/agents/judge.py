@@ -1,7 +1,7 @@
 import json
 from pathlib import Path
-from agents.base import Agent
-from llm.base import LLMProvider
+from core.agents.base import Agent
+from core.llm.base import LLMProvider
 
 PROMPTS_DIR = Path(__file__).parent / "prompts"
 
@@ -26,7 +26,8 @@ class JudgeAgent(Agent):
             f"## Answer Key\n{json.dumps(answer_key, indent=2)}"
         )
         messages = [{"role": "user", "content": eval_message}]
-        response = await self.respond(messages)
+        trace = await self.respond(messages)
+        response = trace.output
 
         # Extract JSON from the response
         try:

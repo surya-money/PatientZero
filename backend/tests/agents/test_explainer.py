@@ -1,13 +1,14 @@
 import pytest
-from agents.explainer import ExplainerAgent
-from llm.mock import MockProvider
+from core.agents.explainer import ExplainerAgent
+from core.llm.mock import MockProvider
+from core.types import AgentStep, Scenario
 
-SCENARIO = {
-    "test_name": "Complete Blood Count",
-    "results": "WBC: 11.2 x10^9/L",
-    "normal_range": "4.5-11.0 x10^9/L",
-    "significance": "Mildly elevated white blood cell count",
-}
+SCENARIO = Scenario(
+    test_name="Complete Blood Count",
+    results="WBC: 11.2 x10^9/L",
+    normal_range="4.5-11.0 x10^9/L",
+    significance="Mildly elevated white blood cell count",
+)
 
 
 @pytest.fixture
@@ -52,11 +53,15 @@ def test_scenario_fields_in_prompt(provider):
 
 
 @pytest.mark.asyncio
-async def test_respond_returns_string(provider):
+async def test_respond_returns_trace(provider):
     agent = ExplainerAgent(provider, "default", "clinical", "static", SCENARIO)
-    result = await agent.respond([{"role": "user", "content": "Explain my results"}])
-    assert isinstance(result, str)
-    assert len(result) > 0
+    trace = await agent.respond([{"role": "user", "content": "Explain my results"}])
+    assert isinstance(trace, AgentStep)
+    assert trace.agent_type == "ExplainerAgent"
+    assert trace.model == "default"
+    assert len(trace.output) > 0
+    assert trace.duration_ms >= 0
+    assert trace.error is None
 
 
 @pytest.mark.asyncio
@@ -66,4 +71,5 @@ async def test_stream_yields_tokens(provider):
     async for token in agent.stream([{"role": "user", "content": "What does this mean?"}]):
         tokens.append(token)
     assert len(tokens) > 0
-    assert "".join(tokens) == await agent.respond([{"role": "user", "content": "What does this mean?"}])
+    trace = await agent.respond([{"role": "user", "content": "What does this mean?"}])
+    assert "".join(tokens) == trace.output

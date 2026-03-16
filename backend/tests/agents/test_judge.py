@@ -1,6 +1,6 @@
 import pytest
-from agents.judge import JudgeAgent
-from llm.mock import MockProvider
+from core.agents.judge import JudgeAgent
+from core.llm.mock import MockProvider
 
 
 @pytest.fixture

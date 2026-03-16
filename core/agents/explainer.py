@@ -1,6 +1,7 @@
 from pathlib import Path
-from agents.base import Agent
-from llm.base import LLMProvider
+from core.agents.base import Agent
+from core.llm.base import LLMProvider
+from core.types import Scenario
 
 PROMPTS_DIR = Path(__file__).parent / "prompts"
 
@@ -19,7 +20,7 @@ class ExplainerAgent(Agent):
         model: str,
         style: str,
         mode: str,
-        scenario: dict,
+        scenario: Scenario,
     ):
         self.style = style
         self.mode = mode
@@ -28,15 +29,15 @@ class ExplainerAgent(Agent):
         super().__init__(provider, model, system_prompt)
 
     @staticmethod
-    def _build_system_prompt(style: str, mode: str, scenario: dict) -> str:
+    def _build_system_prompt(style: str, mode: str, scenario: Scenario) -> str:
         key = (style, mode)
         if key not in PROMPT_FILES:
             raise ValueError(f"Invalid style/mode combination: {style}/{mode}")
         template_path = PROMPTS_DIR / PROMPT_FILES[key]
         template = template_path.read_text()
         return template.format(
-            test_name=scenario.get("test_name", ""),
-            results=scenario.get("results", ""),
-            normal_range=scenario.get("normal_range", ""),
-            significance=scenario.get("significance", ""),
+            test_name=scenario.test_name,
+            results=scenario.results,
+            normal_range=scenario.normal_range,
+            significance=scenario.significance,
         )

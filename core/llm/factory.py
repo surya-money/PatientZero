@@ -1,8 +1,8 @@
 import os
 
-from llm.base import LLMProvider
-from llm.mock import MockProvider
-from llm.openai_provider import OpenAIProvider
+from core.llm.base import LLMProvider
+from core.llm.mock import MockProvider
+from core.llm.openai_provider import OpenAIProvider
 
 
 _providers: dict[str, LLMProvider] = {}
@@ -18,7 +18,7 @@ def get_provider(provider_name: str) -> LLMProvider:
         case "kimi":
             _providers[provider_name] = OpenAIProvider(
                 api_key=os.environ["KIMI_API_KEY"],
-                base_url="https://api.moonshot.cn/v1",
+                base_url="https://api.kimi.com/coding/v1",
             )
         case _:
             raise ValueError(f"Unknown LLM provider: {provider_name}")

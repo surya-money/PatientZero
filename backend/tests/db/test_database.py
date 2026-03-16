@@ -1,4 +1,4 @@
-from db.database import Database
+from core.db.database import Database
 
 
 def test_init_creates_tables(db):

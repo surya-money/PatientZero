@@ -1,4 +1,5 @@
 import type { Session, SessionDetail } from '@/types/chat';
+import type { SimulationConfig } from '@/types/simulation';
 import { client, API_BASE } from './client';
 
 export async function createSession(model: string = 'mock:default'): Promise<Session> {
@@ -70,6 +71,67 @@ export async function sendMessage(
       if (line.startsWith('event: done')) {
         onDone();
         return;
+      }
+    }
+  }
+  onDone();
+}
+
+export async function runSimulation(
+  config: SimulationConfig,
+  onTurnStart: (role: string, turn: number) => void,
+  onToken: (token: string) => void,
+  onTurnEnd: (role: string) => void,
+  onDone: () => void,
+) {
+  const response = await fetch(`${API_BASE}/simulate`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(config),
+  });
+
+  const reader = response.body?.getReader();
+  if (!reader) return;
+
+  const decoder = new TextDecoder();
+  let buffer = '';
+  let currentEvent = '';
+
+  while (true) {
+    const { done, value } = await reader.read();
+    if (done) break;
+
+    buffer += decoder.decode(value, { stream: true });
+    const lines = buffer.split('\n');
+    buffer = lines.pop() || '';
+
+    for (const line of lines) {
+      if (line.startsWith('event:')) {
+        currentEvent = line.slice(6).trim();
+        continue;
+      }
+      if (line.startsWith('data:')) {
+        const raw = line.slice(5).trim();
+        if (!raw) continue;
+
+        if (currentEvent === 'done') {
+          onDone();
+          return;
+        }
+
+        try {
+          const parsed = JSON.parse(raw);
+          if (currentEvent === 'turn_start') {
+            onTurnStart(parsed.role, parsed.turn);
+          } else if (currentEvent === 'turn_end') {
+            onTurnEnd(parsed.role);
+          } else if (parsed.token !== undefined) {
+            onToken(parsed.token);
+          }
+        } catch {
+          // skip non-JSON
+        }
+        currentEvent = '';
       }
     }
   }

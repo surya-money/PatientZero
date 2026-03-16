@@ -10,7 +10,7 @@ FRONTEND_URL = os.getenv("FRONTEND_URL", "http://localhost:5173")
 
 AVAILABLE_MODELS = [
     "mock:default",
-    "kimi:kimi-2.5",
+    "kimi:kimi-k2.5",
     "claude:claude-sonnet-4-20250514",
     "claude:claude-opus-4-20250514",
     "local:default",

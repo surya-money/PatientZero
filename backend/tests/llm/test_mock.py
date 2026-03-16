@@ -1,5 +1,5 @@
 import pytest
-from llm.mock import MockProvider
+from core.llm.mock import MockProvider
 
 
 @pytest.mark.asyncio

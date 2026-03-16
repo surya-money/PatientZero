@@ -3,9 +3,10 @@ from contextlib import asynccontextmanager
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
-from config.settings import FRONTEND_URL
-from api.dependencies import db
-from api.routes.chat import router as chat_router
+from core.config.settings import FRONTEND_URL
+from backend.api.dependencies import db
+from backend.api.routes.chat import router as chat_router
+from backend.api.routes.simulate import router as simulate_router
 
 
 @asynccontextmanager
@@ -25,3 +26,4 @@ app.add_middleware(
 )
 
 app.include_router(chat_router, prefix="/api")
+app.include_router(simulate_router, prefix="/api")

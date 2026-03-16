@@ -1,7 +1,7 @@
 import asyncio
 from collections.abc import AsyncGenerator
 
-from llm.base import LLMProvider
+from core.llm.base import LLMProvider
 
 
 class MockProvider(LLMProvider):

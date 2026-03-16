@@ -30,7 +30,7 @@ export function Sidebar({ sessions, activeSessionId, onSelectSession, onNewChat,
           {sessions.map((session) => (
             <div
               key={session.id}
-              className={`group flex items-center gap-2 rounded-md px-3 py-2 text-sm transition-colors hover:bg-accent ${
+              className={`group flex items-center gap-2 rounded-md px-3 py-2 text-sm hover:bg-accent ${
                 activeSessionId === session.id ? 'bg-accent text-accent-foreground' : 'text-muted-foreground'
               }`}
             >
@@ -46,7 +46,7 @@ export function Sidebar({ sessions, activeSessionId, onSelectSession, onNewChat,
                   e.stopPropagation();
                   onDeleteSession(session.id);
                 }}
-                className="hidden shrink-0 rounded p-1 text-muted-foreground hover:bg-destructive hover:text-white group-hover:block"
+                className="shrink-0 rounded p-1 text-muted-foreground opacity-0 hover:bg-destructive hover:text-white group-hover:opacity-100"
               >
                 <Trash2 className="h-3.5 w-3.5" />
               </button>

@@ -1,4 +1,4 @@
-from db.queries.sessions import (
+from core.db.queries.sessions import (
     create_session,
     create_turn,
     delete_session,

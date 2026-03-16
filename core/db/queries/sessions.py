@@ -1,5 +1,5 @@
 import uuid
-from db.database import Database
+from core.db.database import Database
 
 
 def create_session(db: Database, model: str = "mock:default") -> dict:
