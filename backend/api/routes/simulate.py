@@ -68,6 +68,7 @@ class SimulateRequest(BaseModel):
     mode: Literal["static", "dialog"]
     scenario: ScenarioRequest
     model: str
+    max_turns: int | None = None
 
 
 @router.post("/simulate")
@@ -80,7 +81,7 @@ async def simulate(request: SimulateRequest):
     explainer = ExplainerAgent(provider, model, request.style, request.mode, scenario)
     patient = PatientAgent(provider, model, persona)
 
-    sim = Simulation(explainer, patient, request.mode)
+    sim = Simulation(explainer, patient, request.mode, max_turns=request.max_turns)
 
     # Persist simulation
     sim_record = create_simulation(

@@ -1,11 +1,10 @@
 import { useState, useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Header } from '@/components/common/Header';
 import { Button } from '@/components/ui/button';
-import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
+import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
+import { Input } from '@/components/ui/input';
 import { ScrollArea } from '@/components/ui/scroll-area';
-import { Separator } from '@/components/ui/separator';
 import {
   Select,
   SelectContent,
@@ -55,6 +54,7 @@ export function SimulationsPage() {
   const [conditionIdx, setConditionIdx] = useState<number>(0);
   const [scenarioIdx, setScenarioIdx] = useState<number>(0);
   const [model, setModel] = useState<string>('');
+  const [maxTurns, setMaxTurns] = useState<string>('');
   const [isLaunching, setIsLaunching] = useState(false);
 
   const fetchSimulations = useCallback(() => {
@@ -71,36 +71,46 @@ export function SimulationsPage() {
     fetchSimulations();
   }, []);
 
+  const selectedCondition = conditions[conditionIdx];
+  const defaultTurns = selectedCondition.mode === 'static' ? 2 : 8;
+
   const handleRun = useCallback(async () => {
     if (personas.length === 0 || scenariosList.length === 0) return;
 
     const condition = conditions[conditionIdx];
+    const parsedMaxTurns = maxTurns ? parseInt(maxTurns, 10) : undefined;
     const config = {
       persona: personas[personaIdx],
       style: condition.style,
       mode: condition.mode,
       scenario: scenariosList[scenarioIdx],
       model,
+      ...(parsedMaxTurns && !isNaN(parsedMaxTurns) ? { max_turns: parsedMaxTurns } : {}),
     };
 
     setIsLaunching(true);
 
     try {
+      let navigated = false;
       await runSimulation(
         config,
-        (_role, _turn) => {},
+        (_role, _turn, simId) => {
+          if (!navigated && simId) {
+            navigated = true;
+            navigate(`/simulations/${simId}`);
+          }
+        },
         (_token) => {},
         (_role, _turn) => {},
-        (simulationId) => {
+        (_simulationId) => {
           setIsLaunching(false);
           fetchSimulations();
-          navigate(`/simulations/${simulationId}`);
         },
       );
     } catch {
       setIsLaunching(false);
     }
-  }, [personas, scenariosList, personaIdx, conditionIdx, scenarioIdx, model, navigate, fetchSimulations]);
+  }, [personas, scenariosList, personaIdx, conditionIdx, scenarioIdx, model, maxTurns, navigate, fetchSimulations]);
 
   const handleDelete = useCallback(async (id: string) => {
     await deleteSimulation(id);
@@ -110,20 +120,17 @@ export function SimulationsPage() {
   const dataLoaded = personas.length > 0 && scenariosList.length > 0;
 
   return (
-    <>
-      <Header title="Simulations" />
-      <div className="flex flex-1 overflow-hidden">
-        {/* Config panel */}
-        <div className="flex w-80 shrink-0 flex-col border-r border-border bg-muted/20 p-4 gap-5 overflow-y-auto">
-          <Card size="sm">
-            <CardHeader>
-              <CardTitle>New Simulation</CardTitle>
-            </CardHeader>
-            <CardContent className="flex flex-col gap-4">
-              <div className="flex flex-col gap-1.5">
-                <label className="text-xs font-medium text-muted-foreground">Persona</label>
+    <ScrollArea className="flex-1">
+      <div className="p-6 max-w-5xl mx-auto space-y-6">
+        {/* New simulation card */}
+        <Card>
+          <CardContent className="pt-5 pb-4">
+            <h3 className="text-sm font-semibold mb-3">New Simulation</h3>
+            <div className="flex items-end gap-3 flex-wrap">
+              <div className="flex flex-col gap-1">
+                <label className="text-xs text-muted-foreground">Persona</label>
                 <Select value={String(personaIdx)} onValueChange={(v) => setPersonaIdx(Number(v))}>
-                  <SelectTrigger className="w-full"><SelectValue /></SelectTrigger>
+                  <SelectTrigger className="w-44 h-9 text-xs"><SelectValue /></SelectTrigger>
                   <SelectContent>
                     {personas.map((p, i) => (
                       <SelectItem key={i} value={String(i)}>{p.name}</SelectItem>
@@ -132,22 +139,10 @@ export function SimulationsPage() {
                 </Select>
               </div>
 
-              <div className="flex flex-col gap-1.5">
-                <label className="text-xs font-medium text-muted-foreground">Condition</label>
-                <Select value={String(conditionIdx)} onValueChange={(v) => setConditionIdx(Number(v))}>
-                  <SelectTrigger className="w-full"><SelectValue /></SelectTrigger>
-                  <SelectContent>
-                    {conditions.map((c, i) => (
-                      <SelectItem key={i} value={String(i)}>{c.label}</SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-
-              <div className="flex flex-col gap-1.5">
-                <label className="text-xs font-medium text-muted-foreground">Scenario</label>
+              <div className="flex flex-col gap-1">
+                <label className="text-xs text-muted-foreground">Scenario</label>
                 <Select value={String(scenarioIdx)} onValueChange={(v) => setScenarioIdx(Number(v))}>
-                  <SelectTrigger className="w-full"><SelectValue /></SelectTrigger>
+                  <SelectTrigger className="w-52 h-9 text-xs"><SelectValue /></SelectTrigger>
                   <SelectContent>
                     {scenariosList.map((s, i) => (
                       <SelectItem key={i} value={String(i)}>{s.test_name}</SelectItem>
@@ -156,10 +151,22 @@ export function SimulationsPage() {
                 </Select>
               </div>
 
-              <div className="flex flex-col gap-1.5">
-                <label className="text-xs font-medium text-muted-foreground">Model</label>
+              <div className="flex flex-col gap-1">
+                <label className="text-xs text-muted-foreground">Condition</label>
+                <Select value={String(conditionIdx)} onValueChange={(v) => setConditionIdx(Number(v))}>
+                  <SelectTrigger className="w-40 h-9 text-xs"><SelectValue /></SelectTrigger>
+                  <SelectContent>
+                    {conditions.map((c, i) => (
+                      <SelectItem key={i} value={String(i)}>{c.label}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+
+              <div className="flex flex-col gap-1">
+                <label className="text-xs text-muted-foreground">Model</label>
                 <Select value={model} onValueChange={setModel}>
-                  <SelectTrigger className="w-full"><SelectValue /></SelectTrigger>
+                  <SelectTrigger className="w-40 h-9 text-xs"><SelectValue /></SelectTrigger>
                   <SelectContent>
                     {availableModels.map((m) => (
                       <SelectItem key={m} value={m}>{m}</SelectItem>
@@ -168,78 +175,85 @@ export function SimulationsPage() {
                 </Select>
               </div>
 
-              <Separator />
+              <div className="flex flex-col gap-1">
+                <label className="text-xs text-muted-foreground">Max turns</label>
+                <Input
+                  type="number"
+                  min={1}
+                  max={20}
+                  placeholder={String(defaultTurns)}
+                  value={maxTurns}
+                  onChange={(e) => setMaxTurns(e.target.value)}
+                  className="w-20 h-9 text-xs"
+                />
+              </div>
 
-              <Button onClick={handleRun} disabled={isLaunching || !dataLoaded} className="w-full gap-2">
+              <Button onClick={handleRun} disabled={isLaunching || !dataLoaded} size="sm" className="gap-1.5 h-9">
                 {isLaunching ? (
-                  <><Loader2 className="h-4 w-4 animate-spin" /> Running...</>
+                  <><Loader2 className="h-3.5 w-3.5 animate-spin" /> Running...</>
                 ) : (
-                  <><Play className="h-4 w-4" /> Run Simulation</>
+                  <><Play className="h-3.5 w-3.5" /> Run</>
                 )}
               </Button>
-            </CardContent>
-          </Card>
-        </div>
+            </div>
+          </CardContent>
+        </Card>
 
         {/* Simulation list */}
-        <ScrollArea className="flex-1">
-          <div className="p-6 max-w-4xl mx-auto">
-            <h2 className="text-lg font-semibold mb-4">Past Simulations</h2>
-
-            {simulations.length === 0 ? (
-              <p className="text-muted-foreground text-sm">No simulations yet. Run one using the panel on the left.</p>
-            ) : (
-              <div className="flex flex-col gap-3">
-                {simulations.map((sim) => (
-                  <Card
-                    key={sim.id}
-                    size="sm"
-                    className="cursor-pointer hover:bg-muted/40 transition-colors"
-                    onClick={() => navigate(`/simulations/${sim.id}`)}
-                  >
-                    <CardContent className="flex items-center justify-between py-3">
-                      <div className="flex flex-col gap-1">
-                        <div className="flex items-center gap-2">
-                          <span className="font-medium text-sm">{sim.persona_name}</span>
-                          <span className="text-muted-foreground text-xs">—</span>
-                          <span className="text-sm text-muted-foreground">{sim.scenario_name}</span>
-                        </div>
-                        <div className="flex items-center gap-2 text-xs text-muted-foreground">
-                          <span>{sim.style} + {sim.mode}</span>
-                          <span>·</span>
-                          <span>{sim.model}</span>
-                          <span>·</span>
-                          <span>{new Date(sim.created_at).toLocaleString()}</span>
-                          {sim.duration_ms != null && (
-                            <>
-                              <span>·</span>
-                              <span>{(sim.duration_ms / 1000).toFixed(1)}s</span>
-                            </>
-                          )}
-                        </div>
-                      </div>
+        <div>
+          {simulations.length === 0 ? (
+            <p className="text-muted-foreground text-sm">No simulations yet. Configure and run one above.</p>
+          ) : (
+            <div className="flex flex-col gap-3">
+              {simulations.map((sim) => (
+                <Card
+                  key={sim.id}
+                  size="sm"
+                  className="cursor-pointer hover:bg-muted/40 transition-colors"
+                  onClick={() => navigate(`/simulations/${sim.id}`)}
+                >
+                  <CardContent className="flex items-center justify-between py-3">
+                    <div className="flex flex-col gap-1">
                       <div className="flex items-center gap-2">
-                        <Badge className={statusColor[sim.state] || ''}>{sim.state}</Badge>
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          className="h-7 w-7 p-0 text-muted-foreground hover:text-red-500"
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            handleDelete(sim.id);
-                          }}
-                        >
-                          <Trash2 className="h-3.5 w-3.5" />
-                        </Button>
+                        <span className="font-medium text-sm">{sim.persona_name}</span>
+                        <span className="text-muted-foreground text-xs">—</span>
+                        <span className="text-sm text-muted-foreground">{sim.scenario_name}</span>
                       </div>
-                    </CardContent>
-                  </Card>
-                ))}
-              </div>
-            )}
-          </div>
-        </ScrollArea>
+                      <div className="flex items-center gap-2 text-xs text-muted-foreground">
+                        <span>{sim.style} + {sim.mode}</span>
+                        <span>·</span>
+                        <span>{sim.model}</span>
+                        <span>·</span>
+                        <span>{new Date(sim.created_at).toLocaleString()}</span>
+                        {sim.duration_ms != null && (
+                          <>
+                            <span>·</span>
+                            <span>{(sim.duration_ms / 1000).toFixed(1)}s</span>
+                          </>
+                        )}
+                      </div>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <Badge className={statusColor[sim.state] || ''}>{sim.state}</Badge>
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        className="h-7 w-7 p-0 text-muted-foreground hover:text-red-500"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          handleDelete(sim.id);
+                        }}
+                      >
+                        <Trash2 className="h-3.5 w-3.5" />
+                      </Button>
+                    </div>
+                  </CardContent>
+                </Card>
+              ))}
+            </div>
+          )}
+        </div>
       </div>
-    </>
+    </ScrollArea>
   );
 }

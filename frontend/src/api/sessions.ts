@@ -113,7 +113,7 @@ export async function sendMessage(
 
 export async function runSimulation(
   config: SimulationConfig,
-  onTurnStart: (role: SimulationRole, turn: number) => void,
+  onTurnStart: (role: SimulationRole, turn: number, simulationId?: string) => void,
   onToken: (token: string) => void,
   onTurnEnd: (role: SimulationRole, turn: number) => void,
   onDone: (simulationId: string) => void,
@@ -151,7 +151,7 @@ export async function runSimulation(
         try {
           const parsed = JSON.parse(raw);
           if (currentEvent === 'turn_start') {
-            onTurnStart(parsed.role as SimulationRole, parsed.turn);
+            onTurnStart(parsed.role as SimulationRole, parsed.turn, parsed.simulation_id);
           } else if (currentEvent === 'turn_end') {
             onTurnEnd(parsed.role as SimulationRole, parsed.turn);
           } else if (currentEvent === 'done') {

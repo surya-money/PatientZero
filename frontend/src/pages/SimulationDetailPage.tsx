@@ -58,14 +58,9 @@ export function SimulationDetailPage() {
   const [detail, setDetail] = useState<SimulationDetail | null>(null);
   const [loading, setLoading] = useState(true);
 
-  // Load existing simulation from DB
-  useEffect(() => {
-    if (!simId || simId === 'new') {
-      setLoading(false);
-      return;
-    }
-
-    getSimulation(simId)
+  const fetchDetail = useCallback(() => {
+    if (!simId || simId === 'new') return;
+    return getSimulation(simId)
       .then((data) => {
         setDetail(data);
         setSim({
@@ -78,12 +73,33 @@ export function SimulationDetailPage() {
           currentTurn: data.turns.length,
           error: null,
         });
+        return data;
       })
       .catch(() => {
         setSim({ ...INITIAL_STATE, status: 'error', error: 'Simulation not found' });
-      })
-      .finally(() => setLoading(false));
+        return null;
+      });
   }, [simId]);
+
+  // Initial load
+  useEffect(() => {
+    if (!simId || simId === 'new') {
+      setLoading(false);
+      return;
+    }
+    fetchDetail()?.finally(() => setLoading(false));
+  }, [simId, fetchDetail]);
+
+  // Poll while running
+  useEffect(() => {
+    if (!detail || detail.state !== 'running') return;
+    const interval = setInterval(() => {
+      fetchDetail()?.then((data) => {
+        if (data && data.state !== 'running') clearInterval(interval);
+      });
+    }, 2000);
+    return () => clearInterval(interval);
+  }, [detail?.state, fetchDetail]);
 
   useEffect(() => {
     scrollRef.current?.scrollIntoView({ behavior: 'smooth' });
@@ -110,36 +126,32 @@ export function SimulationDetailPage() {
 
   return (
     <>
-      <Header title={detail ? `${detail.persona_name} — ${detail.scenario_name}` : 'Simulation'} />
-      <div className="flex flex-1 overflow-hidden">
-        {/* Sidebar info */}
-        <div className="flex w-72 shrink-0 flex-col border-r border-border bg-muted/20 p-4 gap-4 overflow-y-auto">
-          <Button variant="ghost" size="sm" className="w-fit gap-1.5" onClick={() => navigate('/simulations')}>
-            <ArrowLeft className="h-4 w-4" /> Back to list
+      {/* Header bar with back button + simulation metadata */}
+      <div className="border-b border-border bg-muted/20 px-4 py-3">
+        <div className="flex items-center gap-4">
+          <Button variant="ghost" size="sm" className="gap-1.5 shrink-0" onClick={() => navigate('/simulations')}>
+            <ArrowLeft className="h-4 w-4" /> Back
           </Button>
 
           {detail && (
-            <>
-              <div className="space-y-2 text-xs">
-                <div className="flex items-center gap-2">
-                  <span className="text-muted-foreground">Status:</span>
-                  <Badge className={statusColor[detail.state] || ''}>{detail.state}</Badge>
-                </div>
-                <div><span className="text-muted-foreground">Persona:</span> {detail.persona_name}</div>
-                <div><span className="text-muted-foreground">Scenario:</span> {detail.scenario_name}</div>
-                <div><span className="text-muted-foreground">Style:</span> {detail.style}</div>
-                <div><span className="text-muted-foreground">Mode:</span> {detail.mode}</div>
-                <div><span className="text-muted-foreground">Model:</span> {detail.model}</div>
-                <div><span className="text-muted-foreground">Turns:</span> {detail.turns.length}</div>
-                {detail.duration_ms != null && (
-                  <div><span className="text-muted-foreground">Duration:</span> {(detail.duration_ms / 1000).toFixed(1)}s</div>
-                )}
-                <div><span className="text-muted-foreground">Created:</span> {new Date(detail.created_at).toLocaleString()}</div>
-              </div>
-            </>
+            <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-xs">
+              <Badge className={statusColor[detail.state] || ''}>{detail.state}</Badge>
+              <span><span className="text-muted-foreground">Persona:</span> {detail.persona_name}</span>
+              <span><span className="text-muted-foreground">Scenario:</span> {detail.scenario_name}</span>
+              <span><span className="text-muted-foreground">Style:</span> {detail.style}</span>
+              <span><span className="text-muted-foreground">Mode:</span> {detail.mode}</span>
+              <span><span className="text-muted-foreground">Model:</span> {detail.model}</span>
+              <span><span className="text-muted-foreground">Turns:</span> {detail.turns.length}</span>
+              {detail.duration_ms != null && (
+                <span><span className="text-muted-foreground">Duration:</span> {(detail.duration_ms / 1000).toFixed(1)}s</span>
+              )}
+              <span><span className="text-muted-foreground">Created:</span> {new Date(detail.created_at).toLocaleString()}</span>
+            </div>
           )}
         </div>
+      </div>
 
+      <div className="flex flex-1 overflow-hidden">
         {/* Transcript */}
         <ScrollArea className="flex-1">
           <div className="flex flex-col gap-4 p-6 max-w-3xl mx-auto">

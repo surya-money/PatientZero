@@ -27,6 +27,7 @@ export interface SimulationConfig {
   mode: Mode;
   scenario: Scenario;
   model: string;
+  max_turns?: number;
 }
 
 export interface SimulationMessage {

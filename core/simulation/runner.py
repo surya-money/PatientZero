@@ -23,11 +23,12 @@ class Simulation:
         explainer: ExplainerAgent,
         patient: PatientAgent,
         mode: str,
+        max_turns: int | None = None,
     ):
         self.explainer = explainer
         self.patient = patient
         self.mode = mode
-        self.max_turns = 2 if mode == "static" else 8
+        self.max_turns = max_turns if max_turns is not None else (2 if mode == "static" else 8)
         self.state = SimulationStatus.IDLE
         self.trace = AgentTrace()
         self._transcript: list[Message] = []
